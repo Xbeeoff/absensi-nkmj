@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mak Judes Absensi</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B00;
+            --primary-dark: #E65C00;
+            --success: #00C853;
+            --danger: #FF3D00;
+            --dark: #0F172A;
+            --glass: rgba(255, 255, 255, 0.9);
+            --bg: #F0F4F8;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--dark); overflow-x: hidden; }
+        
+        .app-shell { width: 100%; max-width: 450px; background: #FFFFFF; min-height: 100vh; position: relative; box-shadow: 0 0 100px rgba(0,0,0,0.1); }
+
+        /* Login Screen Premium */
+        #login-screen { padding: 50px 30px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; background: radial-gradient(circle at top right, #FFF5ED, #FFFFFF); }
+        .logo-supreme { font-size: 38px; font-weight: 800; background: linear-gradient(to right, var(--primary), #FFB800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .login-card { background: white; padding: 35px 25px; border-radius: 35px; box-shadow: 0 25px 50px -12px rgba(255, 107, 0, 0.15); border: 1px solid #FFF1E6; }
+        
+        /* Main Header */
+        #main-app { display: none; animation: fadeIn 0.5s ease; }
+        .header-supreme { background: linear-gradient(135deg, var(--dark) 0%, #2D3E50 100%); color: white; padding: 50px 30px 90px; border-radius: 0 0 50px 50px; position: relative; }
+        .header-supreme h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .branch-badge { background: var(--primary); color: white; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 800; display: inline-block; margin-top: 12px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
+
+        /* Dashboard Cards */
+        .dashboard-supreme { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: -55px 25px 25px; }
+        .stat-card { background: var(--glass); backdrop-filter: blur(10px); padding: 18px; border-radius: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); text-align: center; }
+        .stat-card small { color: #64748B; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card b { display: block; margin-top: 5px; font-size: 14px; }
+
+        /* Camera Glass Frame */
+        .camera-frame { margin: 0 25px; border-radius: 40px; overflow: hidden; height: 380px; position: relative; background: #000; border: 6px solid #FFF; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25); }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #canvas { display: none; transform: scaleX(1); }
+        
+        .shutter-btn { background: linear-gradient(135deg, var(--primary), #FFB800); width: 80%; margin: -40px auto 0; position: relative; z-index: 10; padding: 20px; border-radius: 25px; color: white; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 15px 30px rgba(255, 107, 0, 0.4); display: block; font-size: 15px; transition: 0.3s; }
+        .shutter-btn:active { transform: scale(0.95); }
+
+        /* Action Controls */
+        .action-area { padding: 35px 25px; display: flex; flex-direction: column; gap: 15px; }
+        .input-supreme { width: 100%; padding: 20px; border-radius: 22px; border: 2px solid #E2E8F0; font-size: 16px; font-weight: 600; font-family: inherit; transition: 0.3s; background: #F8FAFC; }
+        .input-supreme:focus { border-color: var(--primary); outline: none; background: #FFF; box-shadow: 0 0 0 4px rgba(255,107,0,0.1); }
+
+        .btn-absen { border: none; border-radius: 22px; padding: 20px; color: white; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-in { background: var(--success); box-shadow: 0 12px 24px rgba(0, 200, 83, 0.3); }
+        .btn-out { background: var(--dark); box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2); }
+        .btn-over { background: #FFB800; color: var(--dark); box-shadow: 0 12px 24px rgba(255, 184, 0, 0.3); }
+
+        select { appearance: none; background: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 20px center/15px; padding-right: 50px !important; }
+
+        #map { height: 140px; margin: 20px 25px; border-radius: 30px; border: 2px solid #FFF; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <div id="login-screen">
+        <div class="logo-supreme">Absensi Karyawan NKMJ</div>
+        <p style="color: #64748B; margin-top: -10px; font-weight: 600; margin-bottom: 40px;">Silahkan Pilih Cabang Yang Sesuai Lokasi</p>
+        
+        <div class="login-card">
+            <p style="text-align: left; font-size: 11px; font-weight: 800; color: var(--primary); margin: 0 0 10px 5px; text-transform: uppercase; letter-spacing: 1px;">Konfirmasi Lokasi Tugas</p>
+            <select id="select-cabang" class="input-supreme"></select>
+            <button class="shutter-btn" style="width: 100%; margin: 10px 0 0;" onclick="login()">MULAI KERJA</button>
+        </div>
+        <p style="font-size: 12px; color: #94A3B8; margin-top: 30px;">© RakaDimas || 2026 Mak Judes Group Management</p>
+    </div>
+
+    <div id="main-app">
+        <div class="header-supreme">
+            <h2 id="welcome-msg">Halo, Team!!!</h2>
+            <div class="branch-badge" id="active-branch">MENUNGGU LOKASI...</div>
+            <button onclick="logout()" style="float: right; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 12px; font-size: 10px; cursor: pointer; font-weight: 700;">LOGOUT</button>
+        </div>
+
+        <div class="dashboard-supreme">
+            <div class="stat-card">
+                <small>Radius Absen</small>
+                <b id="status-dist" style="color: var(--danger);">Checking...</b>
+            </div>
+            <div class="stat-card">
+                <small>Sinyal GPS</small>
+                <b id="status-acc">-- m</b>
+            </div>
+        </div>
+
+        <div class="camera-frame">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <button class="shutter-btn" id="btn-snap" onclick="takeSnapshot()">📸 VERIFIKASI BIOMETRIK</button>
+
+        <div id="action-area" class="action-area" style="display:none;">
+            <input type="text" id="nama" class="input-supreme" placeholder="Ketik Nama Lengkap Anda...">
+            <button class="btn-absen btn-in" onclick="submitAbsen('MASUK')">ABSEN MASUK</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button class="btn-absen btn-out" onclick="submitAbsen('PULANG')">PULANG</button>
+                <button class="btn-absen btn-over" onclick="submitAbsen('LEMBUR')">LEMBUR</button>
+            </div>
+            <p style="text-align: center; font-size: 13px; color: #64748B; font-weight: 700; cursor: pointer; text-decoration: underline;" onclick="location.reload()">Reset Kamera</p>
+        </div>
+
+        <div id="map"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // GANTI URL DIBAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBBZ_I46_i6g_p51oJ-zwAAypcy7FqgNsy2kMZJy8IEISD6x7tXAq3KSIblWN3vUuReQ/exec"; 
+
+    const CABANG = [
+        { n: "Cabang Baru", lat: -6.3276026, lng: 106.8467117 },
+        { n: "Tebet", lat: -6.2263, lng: 106.8494 },
+        { n: "Kelapa Gading", lat: -6.1540, lng: 106.9103 },
+        { n: "Sunter", lat: -6.1384, lng: 106.8667 },
+        { n: "Jatinegara", lat: -6.2151, lng: 106.8704 },
+        { n: "Mangga Besar", lat: -6.1481, lng: 106.8261 },
+        { n: "THB", lat: -6.1915, lng: 106.9839 },
+        { n: "Tanjung Duren", lat: -6.1738, lng: 106.7844 },
+        { n: "Tanah Abang", lat: -6.1859, lng: 106.8140 },
+        { n: "Kuningan", lat: -6.2184, lng: 106.8285 },
+        { n: "Bangka", lat: -6.2558, lng: 106.8145 },
+        { n: "Kebagusan", lat: -6.3115, lng: 106.8318 },
+        { n: "Pejaten", lat: -6.2736, lng: 106.8251 }
+    ];
+
+    let userLat, userLng, selectedBranch, distance = Infinity;
+    let map, marker;
+
+    const select = document.getElementById('select-cabang');
+    CABANG.forEach(c => {
+        let opt = document.createElement('option');
+        opt.value = c.n; opt.innerText = c.n;
+        select.appendChild(opt);
+    });
+
+    function login() {
+        const bName = select.value;
+        selectedBranch = CABANG.find(c => c.n === bName);
+        localStorage.setItem('supreme_branch', bName);
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        document.getElementById('active-branch').innerText = `LOKASI: ${bName.toUpperCase()}`;
+        
+        initGPS();
+        initCamera();
+        document.getElementById('nama').value = localStorage.getItem('supreme_nama') || '';
+    }
+
+    function logout() {
+        localStorage.removeItem('supreme_branch');
+        location.reload();
+    }
+
+    function initGPS() {
+        map = L.map('map', {zoomControl: false, attributionControl: false}).setView([selectedBranch.lat, selectedBranch.lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.circle([selectedBranch.lat, selectedBranch.lng], {radius: 60, color: '#FF6B00', fillOpacity: 0.1, weight: 2}).addTo(map);
+
+        navigator.geolocation.watchPosition(pos => {
+            userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+            distance = map.distance([userLat, userLng], [selectedBranch.lat, selectedBranch.lng]);
+            document.getElementById('status-acc').innerText = Math.round(pos.coords.accuracy) + " m";
+            
+            if(marker) map.removeLayer(marker);
+            marker = L.circleMarker([userLat, userLng], {radius: 8, color: '#007AFF', fillOpacity: 1, weight: 3, fillColor: '#FFF'}).addTo(map);
+            map.setView([userLat, userLng], 16);
+
+            const sDist = document.getElementById('status-dist');
+            if(distance <= 60) {
+                sDist.innerText = "AREA KERJA"; sDist.style.color = "var(--success)";
+            } else {
+                sDist.innerText = `${Math.round(distance)}m DILUAR`; sDist.style.color = "var(--danger)";
+            }
+        }, null, { enableHighAccuracy: true });
+    }
+
+    function initCamera() {
+        const video = document.getElementById('video');
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => video.srcObject = s);
+    }
+
+    function takeSnapshot() {
+        if(distance > 60) return alert("Akses Ditolak! Anda berada di luar radius cabang.");
+        
+        const canvas = document.getElementById('canvas');
+        const video = document.getElementById('video');
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0); ctx.setTransform(1,0,0,1,0,0);
+        
+        ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, canvas.height-50, canvas.width, 50);
+        ctx.fillStyle = "#FFF"; ctx.font = "bold 16px Plus Jakarta Sans";
+        ctx.fillText(`MAK JUDES | ${selectedBranch.n.toUpperCase()} | ${new Date().toLocaleTimeString()}`, 20, canvas.height-20);
+
+        video.style.display = 'none'; canvas.style.display = 'block';
+        document.getElementById('btn-snap').style.display = 'none';
+        document.getElementById('action-area').style.display = 'flex';
+    }
+
+    async function submitAbsen(st) {
+        const nama = document.getElementById('nama').value.trim();
+        if(!nama) return alert("Silakan isi nama lengkap Anda.");
+        localStorage.setItem('supreme_nama', nama);
+
+        document.getElementById('status-dist').innerText = "MENGIRIM...";
+
+        const payload = {
+            nama, status: st, cabang: selectedBranch.n,
+            foto: document.getElementById('canvas').toDataURL('image/jpeg', 0.5).split(',')[1],
+            lat: userLat, lng: userLng, jarak: Math.round(distance)
+        };
+
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("PRESENSI BERHASIL! Selamat bekerja.");
+            location.reload();
+        } catch (e) { alert("Gangguan koneksi, coba lagi."); }
+    }
+
+    if(localStorage.getItem('supreme_branch')) {
+        setTimeout(() => { select.value = localStorage.getItem('supreme_branch'); login(); }, 500);
+    }
+</script>
+</body>
+</html>

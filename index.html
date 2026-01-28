@@ -124,18 +124,18 @@
 
     const CABANG = [
         { n: "Cabang Baru", lat: -6.3276026, lng: 106.8467117 },
-        { n: "Tebet", lat: -6.2263, lng: 106.8494 },
-        { n: "Kelapa Gading", lat: -6.155716, lng: 106.917452 },
-        { n: "Sunter", lat: -6.1384, lng: 106.8667 },
-        { n: "Jatinegara", lat: -6.2151, lng: 106.8704 },
-        { n: "Mangga Besar", lat: -6.1481, lng: 106.8261 },
-        { n: "THB", lat: -6.1915, lng: 106.9839 },
-        { n: "Tanjung Duren", lat: -6.1738, lng: 106.7844 },
-        { n: "Tanah Abang", lat: -6.1859, lng: 106.8140 },
-        { n: "Kuningan", lat: -6.223847, lng: 106.825224 },
-        { n: "Bangka", lat: -6.2558, lng: 106.8145 },
-        { n: "Kebagusan", lat: -6.305609, lng: 106.836173 },
-        { n: "Pejaten", lat: -6.2736, lng: 106.8251 }
+        { n: "Tebet", lat: -6.245844, lng: 106.818456 },
+        { n: "Kelapa Gading", lat: -6.155822, lng: 106.903845 },
+        { n: "Sunter", lat: -6.155452, lng: 106.877045 },
+        { n: "Jatinegara", lat: -6.215286, lng: 106.868778 },
+        { n: "Mangga Besar", lat: -6.147256, lng: 106.825633 },
+        { n: "THB", lat: -6.197931, lng: 106.994514 },
+        { n: "Tanjung Duren", lat: -6.185732, lng: 106.764585 },
+        { n: "Tanah Abang", lat: -6.173819, lng: 106.818806 },
+        { n: "Kuningan", lat: -6.223842, lng: 106.827367 },
+        { n: "Bangka", lat: -6.245844, lng: 106.818456 },
+        { n: "Kebagusan", lat: -6.305139, lng: 106.829111 },
+        { n: "Pejaten", lat: -6.275817, lng: 106.825864 }
     ];
 
     let userLat, userLng, selectedBranch, distance = Infinity;
@@ -196,7 +196,7 @@
     }
 
     function takeSnapshot() {
-        if(distance > 60) return alert("Akses Ditolak! Anda berada di luar radius cabang.");
+        if(distance > 100) return alert("Akses Ditolak! Anda berada di luar radius cabang.");
         
         const canvas = document.getElementById('canvas');
         const video = document.getElementById('video');
@@ -241,6 +241,7 @@
 </body>
 
 </html>
+
 
 
 
